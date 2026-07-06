@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <title>フィードバック履歴 | 祇園町火災検知AI</title>
+
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f7f3ec 0%, #ffffff 45%, #f1f5f9 100%);
+      color: #0f172a;
+    }
+
+    .app-wrapper {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 16px 72px;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #111827 0%, #7f1d1d 100%);
+      color: #ffffff;
+      border-radius: 24px;
+      padding: 34px 28px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    .page-title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+
+    .page-subtitle {
+      color: #f3f4f6;
+      margin-bottom: 0;
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .filter-card,
+    .feedback-card,
+    .empty-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .filter-card {
+      padding: 20px;
+      margin-top: 24px;
+    }
+
+    .filter-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-button {
+      display: inline-block;
+      text-decoration: none;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      padding: 9px 14px;
+      color: #374151;
+      background: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+
+    .filter-button:hover {
+      color: #7f1d1d;
+      background: #fff7f7;
+      border-color: #fecaca;
+    }
+
+    .filter-button.active {
+      color: #ffffff;
+      background: #7f1d1d;
+      border-color: #7f1d1d;
+    }
+
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .feedback-card {
+      overflow: hidden;
+    }
+
+    .feedback-image-wrap {
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: center;
+      padding: 14px;
+    }
+
+    .feedback-image {
+      width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: #f3f4f6;
+    }
+
+    .feedback-body {
+      padding: 18px;
+    }
+
+    .category-badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .badge-correct {
+      background: #dcfce7;
+      color: #14532d;
+    }
+
+    .badge-false_positive_red_lantern {
+      background: #ffedd5;
+      color: #7c2d12;
+    }
+
+    .badge-false_positive_non_fire_smoke {
+      background: #fef3c7;
+      color: #78350f;
+    }
+
+    .badge-missed_fire_or_smoke {
+      background: #fee2e2;
+      color: #7f1d1d;
+    }
+
+    .badge-other {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .meta-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: 14px;
+    }
+
+    .meta-list li {
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid #f3f4f6;
+      padding: 8px 0;
+    }
+
+    .meta-label {
+      width: 96px;
+      flex-shrink: 0;
+      color: #6b7280;
+      font-weight: 700;
+    }
+
+    .meta-value {
+      color: #111827;
+      word-break: break-word;
+    }
+
+    .note-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #f9fafb;
+      color: #374151;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .empty-card {
+      margin-top: 24px;
+      padding: 34px;
+      text-align: center;
+      color: #6b7280;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .feedback-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app-wrapper">
+
+    <section class="page-header">
+      <div class="page-title">フィードバック履歴</div>
+
+      <p class="page-subtitle">
+        保存した正解・誤検知・見逃しデータを確認します。
+        この一覧は、次回の再学習データ作成に使えます。
+      </p>
+
+      <div class="top-actions">
+        <a href="{% url 'predict' %}" class="btn btn-light btn-sm">
+          判定画面へ戻る
+        </a>
+
+        <span class="btn btn-outline-light btn-sm disabled">
+          保存件数: {{ total_count }} 件
+        </span>
+      </div>
+    </section>
+
+    <section class="filter-card">
+      <h5 class="mb-3">カテゴリで絞り込み</h5>
+
+      <div class="filter-grid">
+        {% for option in category_options %}
+          <a
+            href="{% url 'feedback_list' %}?category={{ option.key }}"
+            class="filter-button {% if selected_category == option.key %}active{% endif %}"
+          >
+            {{ option.label }}（{{ option.count }}）
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if feedback_logs %}
+      <section class="feedback-grid">
+        {% for item in feedback_logs %}
+          <article class="feedback-card">
+
+            <div class="feedback-image-wrap">
+              {% if item.saved_image_url %}
+                <img
+                  src="{{ item.saved_image_url }}"
+                  class="feedback-image"
+                  alt="保存済みフィードバック画像"
+                >
+              {% else %}
+                <div class="text-muted py-5">
+                  画像ファイルが見つかりません
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="feedback-body">
+              <div class="category-badge badge-{{ item.category }}">
+                {{ item.category_label }}
+              </div>
+
+              <ul class="meta-list">
+                <li>
+                  <span class="meta-label">保存日時</span>
+                  <span class="meta-value">{{ item.created_at }}</span>
+                </li>
+
+                <li>
+                  <span class="meta-label">判定モード</span>
+                  <span class="meta-value">{{ item.selected_mode }}</span>
+                </li>
+
+                <li>
+                  <span class="meta-label">判定タイトル</span>
+                  <span class="meta-value">{{ item.final_title }}</span>
+                </li>
+
+                <li>
+                  <span class="meta-label">最終判定</span>
+                  <span class="meta-value">{{ item.final_summary }}</span>
+                </li>
+
+                <li>
+                  <span class="meta-label">リスクレベル</span>
+                  <span class="meta-value">{{ item.final_level }}</span>
+                </li>
+
+                <li>
+                  <span class="meta-label">JSON</span>
+                  <span class="meta-value">{{ item.json_filename }}</span>
+                </li>
+              </ul>
+
+              <div class="note-box">
+                {% if item.note %}
+                  {{ item.note }}
+                {% else %}
+                  メモなし
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <section class="empty-card">
+        <h4>まだフィードバックがありません</h4>
+        <p class="mb-0">
+          判定画面で画像を判定し、「この判定は正しい」や「誤検知」を保存すると、ここに表示されます。
+        </p>
+      </section>
+    {% endif %}
+
+  </main>
+</body>
+</html>

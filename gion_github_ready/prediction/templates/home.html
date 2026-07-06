@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+
+  <title>祇園町火災検知AI</title>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #f7f3ec 0%, #ffffff 45%, #f1f5f9 100%);
+      color: #0f172a;
+      min-height: 100vh;
+    }
+
+    .app-wrapper {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 16px;
+    }
+
+    .hero-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .hero-header {
+      background: linear-gradient(135deg, #111827 0%, #7f1d1d 100%);
+      color: white;
+      padding: 34px 28px;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+
+    .hero-subtitle {
+      color: #f3f4f6;
+      margin-bottom: 0;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .content-area {
+      padding: 32px;
+    }
+
+    .section-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      margin-top: 24px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #b91c1c;
+      border-radius: 20px;
+      background: #fff7f7;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .drop-zone:hover {
+      background: #fff1f2;
+      transform: translateY(-1px);
+    }
+
+    .drop-zone.dragover {
+      background: #fee2e2;
+      border-color: #dc2626;
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+    }
+
+    .drop-icon {
+      font-size: 46px;
+      margin-bottom: 12px;
+    }
+
+    .drop-main-text {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .drop-sub-text {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 0;
+    }
+
+    .file-input-hidden {
+      display: none;
+    }
+
+    .preview-image {
+      max-height: 420px;
+      max-width: 100%;
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+      object-fit: contain;
+      background: #f9fafb;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .mode-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 16px;
+      background: #f9fafb;
+      transition: 0.2s ease;
+    }
+
+    .mode-box:hover {
+      background: #fff7f7;
+      border-color: #fecaca;
+    }
+
+    .mode-box label {
+      display: block;
+      cursor: pointer;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .mode-help {
+      color: #6b7280;
+      font-size: 13px;
+      margin-bottom: 0;
+      line-height: 1.7;
+    }
+
+    .submit-button {
+      border-radius: 999px;
+      padding: 12px 38px;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(185, 28, 28, 0.2);
+    }
+
+    .small-note {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .result-main {
+      border-radius: 18px;
+      padding: 24px;
+      margin-top: 20px;
+    }
+
+    .result-danger {
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #7f1d1d;
+    }
+
+    .result-warning {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      color: #78350f;
+    }
+
+    .result-caution {
+      background: #ffedd5;
+      border: 1px solid #fdba74;
+      color: #7c2d12;
+    }
+
+    .result-safe {
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #14532d;
+    }
+
+    .result-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .result-message {
+      font-size: 16px;
+      margin-bottom: 0;
+      line-height: 1.8;
+    }
+
+    .confidence-badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      font-weight: 700;
+    }
+
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .feedback-button {
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.42);
+      box-shadow:
+        0 12px 28px rgba(15, 23, 42, 0.10),
+        inset 0 1px 2px rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .feedback-button:hover {
+      background: rgba(255, 255, 255, 0.72);
+      transform: translateY(-1px);
+    }
+
+    .feedback-button.correct {
+      color: #14532d;
+    }
+
+    .feedback-button.warning {
+      color: #7c2d12;
+    }
+
+    .feedback-button.danger {
+      color: #7f1d1d;
+    }
+
+    .feedback-note {
+      width: 100%;
+      min-height: 82px;
+      margin-top: 16px;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      padding: 12px 14px;
+      resize: vertical;
+    }
+
+    .alert-error {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #7f1d1d;
+    }
+
+    @media (max-width: 900px) {
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feedback-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 25px;
+      }
+
+      .content-area {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app-wrapper">
+    <div class="hero-card">
+
+      <div class="hero-header">
+        <div class="hero-title">祇園町火災検知AI</div>
+        <p class="hero-subtitle">
+          Gion YOLO、公開Fire-Smoke YOLO、MobileNetV2画像分類AIを使い、火や煙の可能性を総合判定します。
+        </p>
+        <div class="mt-3">
+  <a href="{% url 'feedback_list' %}" class="btn btn-outline-light btn-sm">
+    フィードバック履歴を見る
+  </a>
+</div>
+      </div>
+
+      <div class="content-area">
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="section-card">
+            <h3 class="mb-3">画像をアップロード</h3>
+
+            <div id="dropZone" class="drop-zone">
+              <div class="drop-icon">📷</div>
+              <p class="drop-main-text">ここに画像をドラッグ＆ドロップ</p>
+              <p class="drop-sub-text">またはクリックして画像を選択してください</p>
+              <p id="fileNameText" class="small-note mt-3 mb-0">
+                まだ画像は選択されていません
+              </p>
+            </div>
+
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              required
+              id="id_image"
+              class="file-input-hidden"
+            >
+
+            <div id="previewArea" class="text-center mt-4" style="display: none;">
+              <h5 class="mb-3">選択中の画像</h5>
+              <img
+                id="previewImage"
+                class="preview-image"
+                src=""
+                alt="選択画像のプレビュー"
+              >
+            </div>
+          </div>
+
+          <div class="section-card">
+            <h3 class="mb-3">判定モード</h3>
+
+            <div class="mode-grid">
+              <div class="mode-box">
+                <label>
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="fusion"
+                    {% if selected_mode == "fusion" or not selected_mode %}checked{% endif %}
+                  >
+                  統合判定モード
+                </label>
+                <p class="mode-help">
+                  Gion YOLO、公開Fire-Smoke YOLO、画像分類AIを使って総合判定します。
+                </p>
+              </div>
+
+              <div class="mode-box">
+                <label>
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="detection"
+                    {% if selected_mode == "detection" %}checked{% endif %}
+                  >
+                  物体検出モード
+                </label>
+                <p class="mode-help">
+                  Gion YOLOだけで fire / smoke の場所を検出します。
+                </p>
+              </div>
+
+              <div class="mode-box">
+                <label>
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="classification"
+                    {% if selected_mode == "classification" %}checked{% endif %}
+                  >
+                  画像分類モード
+                </label>
+                <p class="mode-help">
+                  MobileNetV2系モデルで画像全体を分類します。
+                </p>
+              </div>
+            </div>
+
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-danger btn-lg submit-button">
+                AIで判定する
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {% if messages %}
+          <div class="section-card">
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} mb-0">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if error_message %}
+          <div class="alert alert-warning mt-4">
+            {{ error_message }}
+          </div>
+        {% endif %}
+
+        {% if uploaded_image_url %}
+          <div class="section-card">
+            <h3 class="text-center mb-3">アップロード画像</h3>
+            <div class="text-center">
+              <img
+                src="{{ uploaded_image_url }}"
+                class="preview-image"
+                alt="アップロード画像"
+              >
+            </div>
+          </div>
+        {% endif %}
+
+        {% if selected_mode %}
+          <div class="section-card">
+            <h3 class="text-center mb-3">選択モード</h3>
+
+            {% if selected_mode == "fusion" %}
+              <p class="text-center mb-0">
+                統合判定モードで判定しました。
+              </p>
+            {% elif selected_mode == "detection" %}
+              <p class="text-center mb-0">
+                物体検出モードで判定しました。
+              </p>
+            {% elif selected_mode == "classification" %}
+              <p class="text-center mb-0">
+                画像分類モードで判定しました。
+              </p>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if fusion_result %}
+          <div class="section-card">
+            <h3 class="text-center mb-3">総合判定結果</h3>
+
+            {% if fusion_result.level == "danger" %}
+              <div class="result-main result-danger">
+            {% elif fusion_result.level == "warning" %}
+              <div class="result-main result-warning">
+            {% elif fusion_result.level == "caution" %}
+              <div class="result-main result-caution">
+            {% elif fusion_result.level == "safe" %}
+              <div class="result-main result-safe">
+            {% else %}
+              <div class="result-main">
+            {% endif %}
+
+                <div class="result-title">
+                  {{ fusion_result.title }}
+                </div>
+
+                <p class="result-message">
+                  {{ fusion_result.message }}
+                </p>
+
+                <div class="confidence-badge">
+                  最終判定: {{ fusion_result.summary }}
+                </div>
+              </div>
+
+            <div class="mt-4">
+              <h5 class="mb-3">判定理由</h5>
+
+              <ul class="list-group">
+                {% for line in fusion_result.reason_lines %}
+                  <li class="list-group-item">
+                    {{ line }}
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if fusion_result and uploaded_image_url %}
+          <div class="section-card">
+            <h3 class="text-center mb-3">判定フィードバック</h3>
+
+            <p class="text-center text-muted">
+              この画像の判定が正しいか、誤検知かを保存できます。
+              保存した画像は次回のAI改善データとして使えます。
+            </p>
+
+            <form method="post" action="{% url 'save_feedback' %}">
+              {% csrf_token %}
+
+              <input
+                type="hidden"
+                name="image_url"
+                value="{{ uploaded_image_url }}"
+              >
+
+              <input
+                type="hidden"
+                name="selected_mode"
+                value="{{ selected_mode }}"
+              >
+
+              <input
+                type="hidden"
+                name="final_title"
+                value="{{ fusion_result.title }}"
+              >
+
+              <input
+                type="hidden"
+                name="final_summary"
+                value="{{ fusion_result.summary }}"
+              >
+
+              <input
+                type="hidden"
+                name="final_level"
+                value="{{ fusion_result.level }}"
+              >
+
+              <textarea
+                name="note"
+                class="feedback-note"
+                placeholder="メモ：例）赤い提灯を火と誤判定した / 湯気を煙と判定した / 本物の煙なのに弱かった など"
+              ></textarea>
+
+              <div class="feedback-grid">
+                <button
+                  type="submit"
+                  name="category"
+                  value="correct"
+                  class="feedback-button correct"
+                >
+                  この判定は正しい
+                </button>
+
+                <button
+                  type="submit"
+                  name="category"
+                  value="false_positive_red_lantern"
+                  class="feedback-button warning"
+                >
+                  誤検知：赤い提灯・赤色照明
+                </button>
+
+                <button
+                  type="submit"
+                  name="category"
+                  value="false_positive_non_fire_smoke"
+                  class="feedback-button warning"
+                >
+                  誤検知：料理煙・湯気
+                </button>
+
+                <button
+                  type="submit"
+                  name="category"
+                  value="missed_fire_or_smoke"
+                  class="feedback-button danger"
+                >
+                  見逃し：火・煙がある
+                </button>
+
+                <button
+                  type="submit"
+                  name="category"
+                  value="other"
+                  class="feedback-button"
+                >
+                  その他として保存
+                </button>
+              </div>
+            </form>
+          </div>
+        {% endif %}
+
+        {% if annotated_image_url %}
+          <div class="section-card">
+            <h3 class="text-center mb-3">Gion YOLO 検出枠付き画像</h3>
+            <p class="text-center text-muted">
+              自作Gion YOLOが fire / smoke と判断した場所に枠を表示しています。
+            </p>
+
+            <div class="text-center">
+              <img
+                src="{{ annotated_image_url }}"
+                class="preview-image"
+                alt="Gion YOLO 検出枠付き画像"
+              >
+            </div>
+
+            {% if detection_items %}
+              <div class="mt-4">
+                <h5 class="mb-3">Gion YOLO 検出候補一覧</h5>
+
+                <table class="table table-bordered">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>検出ラベル</th>
+                      <th>信頼度</th>
+                      <th>面積</th>
+                      <th>座標</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in detection_items %}
+                      <tr>
+                        <td>
+                          {% if item.label == "fire" %}
+                            火・炎
+                          {% elif item.label == "smoke" %}
+                            煙
+                          {% else %}
+                            {{ item.label }}
+                          {% endif %}
+                        </td>
+                        <td>{{ item.confidence_percent }}%</td>
+                        <td>{{ item.area }}</td>
+                        <td>{{ item.xyxy }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-success mt-4">
+                Gion YOLOは fire / smoke の候補を検出しませんでした。
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if public_annotated_image_url %}
+          <div class="section-card">
+            <h3 class="text-center mb-3">公開Fire-Smoke YOLO 検出枠付き画像</h3>
+            <p class="text-center text-muted">
+              追加した公開YOLOモデルが fire / smoke と判断した場所に枠を表示しています。
+            </p>
+
+            <div class="text-center">
+              <img
+                src="{{ public_annotated_image_url }}"
+                class="preview-image"
+                alt="公開Fire-Smoke YOLO 検出枠付き画像"
+              >
+            </div>
+
+            {% if public_detection_items %}
+              <div class="mt-4">
+                <h5 class="mb-3">公開Fire-Smoke YOLO 検出候補一覧</h5>
+
+                <table class="table table-bordered">
+                  <thead class="table-dark">
+                    <tr>
+                      <th>検出ラベル</th>
+                      <th>信頼度</th>
+                      <th>面積</th>
+                      <th>座標</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in public_detection_items %}
+                      <tr>
+                        <td>
+                          {% if item.label == "fire" %}
+                            火・炎
+                          {% elif item.label == "smoke" %}
+                            煙
+                          {% else %}
+                            {{ item.label }}
+                          {% endif %}
+                        </td>
+                        <td>{{ item.confidence_percent }}%</td>
+                        <td>{{ item.area }}</td>
+                        <td>{{ item.xyxy }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-success mt-4">
+                公開Fire-Smoke YOLOは fire / smoke の候補を検出しませんでした。
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if selected_mode == "classification" and classification_predictions %}
+          <div class="section-card">
+            <h3 class="text-center mb-3">画像分類結果</h3>
+
+            <table class="table table-striped table-bordered">
+              <thead class="table-dark">
+                <tr>
+                  <th class="text-center" style="width: 80px;">順位</th>
+                  <th>判定カテゴリ</th>
+                  <th class="text-center" style="width: 140px;">確率</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in classification_predictions %}
+                  <tr {% if forloop.first %}class="table-warning fw-bold"{% endif %}>
+                    <td class="text-center">{{ p.rank }}</td>
+                    <td>
+                      {% if p.label == "fire" %}
+                        火災・炎の可能性
+                      {% elif p.label == "smoke" %}
+                        煙の可能性
+                      {% elif p.label == "normal" %}
+                        通常状態の可能性
+                      {% else %}
+                        {{ p.label }}
+                      {% endif %}
+                    </td>
+                    <td class="text-center">{{ p.prob }}%</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("id_image");
+    const previewArea = document.getElementById("previewArea");
+    const previewImage = document.getElementById("previewImage");
+    const fileNameText = document.getElementById("fileNameText");
+
+    dropZone.addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    dropZone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("dragover");
+    });
+
+    dropZone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      dropZone.classList.remove("dragover");
+
+      const files = event.dataTransfer.files;
+
+      if (files.length > 0) {
+        fileInput.files = files;
+        showPreview(files[0]);
+      }
+    });
+
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length > 0) {
+        showPreview(fileInput.files[0]);
+      }
+    });
+
+    function showPreview(file) {
+      if (!file.type.startsWith("image/")) {
+        alert("画像ファイルを選択してください。");
+        return;
+      }
+
+      fileNameText.textContent = "選択中: " + file.name;
+
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+        previewImage.src = event.target.result;
+        previewArea.style.display = "block";
+      };
+
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
