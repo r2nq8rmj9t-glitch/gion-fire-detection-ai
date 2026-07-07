@@ -22,20 +22,20 @@ def _import_interpreter_class():
     """
     TFLiteの実行エンジン（Interpreter）を読み込む。
 
-    環境によって入っているパッケージ名が違うため、
-    軽い順に3段階で試す:
-      1. tflite_runtime（一番軽い・本番用）
-      2. ai_edge_litert（新しい公式軽量パッケージ)
+    環境によって入っているパッケージ名が違うため、順に試す:
+      1. ai_edge_litert（新しい公式軽量パッケージ・本番用）
+      2. tflite_runtime（旧パッケージ。2023年で更新停止のため、
+         新しい形式のモデルを読めないことがある。保険としてのみ)
       3. tensorflow.lite（開発PCにTensorFlowがある場合の保険）
     """
     try:
-        from tflite_runtime.interpreter import Interpreter
+        from ai_edge_litert.interpreter import Interpreter
         return Interpreter
     except ImportError:
         pass
 
     try:
-        from ai_edge_litert.interpreter import Interpreter
+        from tflite_runtime.interpreter import Interpreter
         return Interpreter
     except ImportError:
         pass

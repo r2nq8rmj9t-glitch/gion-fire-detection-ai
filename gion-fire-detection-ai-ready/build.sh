@@ -9,8 +9,12 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 pip install -r requirements.txt
 
-# 画像分類用の軽量ランタイム（TensorFlowの代わり。メモリ大幅節約)
-pip install tflite-runtime || pip install ai-edge-litert
+# 画像分類用の軽量ランタイム（TensorFlowの代わり）。
+# 注意: 旧「tflite-runtime」は2023年で更新停止しており、
+# 新しい形式のTFLiteモデルを読めないため、必ず削除する。
+# 代わりに更新が続いている公式の「ai-edge-litert」を使う。
+pip uninstall -y tflite-runtime || true
+pip install ai-edge-litert
 
 # opencv共倒れ問題の修正:
 # ultralyticsがGUI版opencvを勝手に入れるため、
