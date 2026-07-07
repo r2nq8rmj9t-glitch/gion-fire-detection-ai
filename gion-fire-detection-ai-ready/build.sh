@@ -2,11 +2,19 @@
 set -o errexit
 
 pip install --upgrade pip
+
+# PyTorchはCPU専用版を先に入れる。
+# 通常版はGPU用の巨大ファイル込みで、無料サーバーには重すぎるため。
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
 pip install -r requirements.txt
 
+# 画像分類用の軽量ランタイム（TensorFlowの代わり。メモリ大幅節約)
+pip install tflite-runtime || pip install ai-edge-litert
+
 # opencv共倒れ問題の修正:
-# ultralyticsがGUI版opencvを勝手に入れて、削除時にcv2が壊れるため、
-# 一度「両方」消してから、headless版だけをクリーンに入れ直す
+# ultralyticsがGUI版opencvを勝手に入れるため、
+# 一度「両方」消してから、サーバー用のheadless版だけを入れ直す
 pip uninstall -y opencv-python opencv-python-headless || true
 pip install --no-cache-dir opencv-python-headless
 

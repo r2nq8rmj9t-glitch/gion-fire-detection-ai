@@ -3,6 +3,5 @@ gunicorn
 whitenoise
 Pillow
 numpy
-tensorflow-cpu
 ultralytics
 opencv-python-headless
